@@ -1,0 +1,145 @@
+trigger:
+  - main
+
+pool:
+  vmImage: "ubuntu-latest"
+
+steps:
+  - checkout: self
+    displayName: 'Checkout Repository'
+
+  - task: Bash@3
+    displayName: 'Install Homebrew'
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Install Homebrew if not already installed
+        if ! command -v brew &> /dev/null; then
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+            # Add Homebrew to PATH
+            eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        fi
+
+  - task: Bash@3
+    displayName: 'Install Terraform'
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Add Homebrew to PATH (needed for new task)
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        # Install Terraform using Homebrew
+        brew install terraform
+        terraform --version
+
+  - task: Bash@3
+    displayName: 'Initialize Terraform'
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      targetType: 'inline'
+      script: |
+        terraform init
+
+  - task: Bash@3
+    displayName: 'Print TF_VAR_* Variables'
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Print all TF_VAR_* variables
+        env | grep TF_VAR_
+
+  - task: Bash@3
+    displayName: 'Plan Terraform Changes'
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      targetType: 'inline'
+      script: |
+        # Reference variables in uppercase to match Azure DevOps behavior
+        export TF_VAR_connectivity_secondary_erc_peering_location="${TF_VAR_CONNECTIVITY_SECONDARY_ERC_PEERING_LOCATION}"
+        export TF_VAR_root_name="${TF_VAR_ROOT_NAME}"
+        export TF_VAR_identity_secondary_virtual_network_address_space="${TF_VAR_IDENTITY_SECONDARY_VIRTUAL_NETWORK_ADDRESS_SPACE}"
+        export TF_VAR_connectivity_secondary_virtual_network_address_space="${TF_VAR_CONNECTIVITY_SECONDARY_VIRTUAL_NETWORK_ADDRESS_SPACE}"
+        export TF_VAR_connectivity_primary_erc_service_provider_name="${TF_VAR_CONNECTIVITY_PRIMARY_ERC_SERVICE_PROVIDER_NAME}"
+        export TF_VAR_connectivity_secondary_resource_group_name="${TF_VAR_CONNECTIVITY_SECONDARY_RESOURCE_GROUP_NAME}"
+        export TF_VAR_identity_secondary_resource_group_name="${TF_VAR_IDENTITY_SECONDARY_RESOURCE_GROUP_NAME}"
+        export TF_VAR_connectivity_primary_virtual_network_name="${TF_VAR_CONNECTIVITY_PRIMARY_VIRTUAL_NETWORK_NAME}"
+        export TF_VAR_connectivity_secondary_erc_service_provider_name="${TF_VAR_CONNECTIVITY_SECONDARY_ERC_SERVICE_PROVIDER_NAME}"
+        export TF_VAR_identity_primary_resource_group_name="${TF_VAR_IDENTITY_PRIMARY_RESOURCE_GROUP_NAME}"
+        export TF_VAR_identity_secondary_subnet_name="${TF_VAR_IDENTITY_SECONDARY_SUBNET_NAME}"
+        export TF_VAR_connectivity_secondary_subnet_name="${TF_VAR_CONNECTIVITY_SECONDARY_SUBNET_NAME}"
+        export TF_VAR_identity_secondary_subnet_address_prefixes="${TF_VAR_IDENTITY_SECONDARY_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_connectivity_primary_erc_bandwidth_in_mbps="${TF_VAR_CONNECTIVITY_PRIMARY_ERC_BANDWIDTH_IN_MBPS}"
+        export TF_VAR_connectivity_primary_virtual_network_address_space="${TF_VAR_CONNECTIVITY_PRIMARY_VIRTUAL_NETWORK_ADDRESS_SPACE}"
+        export TF_VAR_identity_primary_subnet_name="${TF_VAR_IDENTITY_PRIMARY_SUBNET_NAME}"
+        export TF_VAR_connectivity_secondary_virtual_network_name="${TF_VAR_CONNECTIVITY_SECONDARY_VIRTUAL_NETWORK_NAME}"
+        export TF_VAR_secondary_region="${TF_VAR_SECONDARY_REGION}"
+        export TF_VAR_connectivity_secondary_subnet_address_prefixes="${TF_VAR_CONNECTIVITY_SECONDARY_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_connectivity_primary_subnet_address_prefixes="${TF_VAR_CONNECTIVITY_PRIMARY_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_connectivity_primary_erc_peering_location="${TF_VAR_CONNECTIVITY_PRIMARY_ERC_PEERING_LOCATION}"
+        export TF_VAR_root_id="${TF_VAR_ROOT_ID}"
+        export TF_VAR_connectivity_primary_resource_group_name="${TF_VAR_CONNECTIVITY_PRIMARY_RESOURCE_GROUP_NAME}"
+        export TF_VAR_identity_primary_virtual_network_name="${TF_VAR_IDENTITY_PRIMARY_VIRTUAL_NETWORK_NAME}"
+        export TF_VAR_subscription_id_connectivity="${TF_VAR_SUBSCRIPTION_ID_CONNECTIVITY}"
+        export TF_VAR_identity_primary_virtual_network_address_space="${TF_VAR_IDENTITY_PRIMARY_VIRTUAL_NETWORK_ADDRESS_SPACE}"
+        export TF_VAR_subscription_id_identity="${TF_VAR_SUBSCRIPTION_ID_IDENTITY}"
+        export TF_VAR_subscription_id_management="${TF_VAR_SUBSCRIPTION_ID_MANAGEMENT}"
+        export TF_VAR_subscription_id_security="${TF_VAR_SUBSCRIPTION_ID_SECURITY}"
+        export TF_VAR_connectivity_secondary_erc_bandwidth_in_mbps="${TF_VAR_CONNECTIVITY_SECONDARY_ERC_BANDWIDTH_IN_MBPS}"
+        export TF_VAR_primary_region="${TF_VAR_PRIMARY_REGION}"
+        export TF_VAR_identity_secondary_virtual_network_name="${TF_VAR_IDENTITY_SECONDARY_VIRTUAL_NETWORK_NAME}"
+        export TF_VAR_identity_primary_subnet_address_prefixes="${TF_VAR_IDENTITY_PRIMARY_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_connectivity_primary_subnet_name="${TF_VAR_CONNECTIVITY_PRIMARY_SUBNET_NAME}"
+        export TF_VAR_identity_primary_tags="${TF_VAR_IDENTITY_PRIMARY_TAGS}"
+        export TF_VAR_identity_secondary_tags="${TF_VAR_IDENTITY_SECONDARY_TAGS}"
+        export TF_VAR_connectivity_primary_tags="${TF_VAR_CONNECTIVITY_PRIMARY_TAGS}"
+        export TF_VAR_connectivity_secondary_tags="${TF_VAR_CONNECTIVITY_SECONDARY_TAGS}"
+        export TF_VAR_management_primary_tags="${TF_VAR_MANAGEMENT_PRIMARY_TAGS}"
+        export TF_VAR_management_secondary_tags="${TF_VAR_MANAGEMENT_SECONDARY_TAGS}"
+        export TF_VAR_security_parent_management_group_id="${TF_VAR_SECURITY_PARENT_MANAGEMENT_GROUP_ID}"
+        export TF_VAR_security_subscription_id="${TF_VAR_SECURITY_SUBSCRIPTION_ID}"
+        # Management VM Variables
+        export TF_VAR_management_vm_admin_username="${TF_VAR_MANAGEMENT_VM_ADMIN_USERNAME}"
+        export TF_VAR_management_vm_admin_password="${TF_VAR_MANAGEMENT_VM_ADMIN_PASSWORD}"
+        export TF_VAR_management_vm_resource_group_name="${TF_VAR_MANAGEMENT_VM_RESOURCE_GROUP_NAME}"
+        export TF_VAR_management_vm_name="${TF_VAR_MANAGEMENT_VM_NAME}"
+        export TF_VAR_management_vm_size="${TF_VAR_MANAGEMENT_VM_SIZE}"
+        export TF_VAR_management_vm_address_space="${TF_VAR_MANAGEMENT_VM_ADDRESS_SPACE}"
+        export TF_VAR_management_vm_subnet_address_prefixes="${TF_VAR_MANAGEMENT_VM_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_management_vm_tags="${TF_VAR_MANAGEMENT_VM_TAGS}"
+        export TF_VAR_management_vm_computer_name="${TF_VAR_MANAGEMENT_VM_COMPUTER_NAME}"
+        export TF_VAR_management_vm_vnet_name="${TF_VAR_MANAGEMENT_VM_VNET_NAME}"
+        export TF_VAR_management_vm_subnet_name="${TF_VAR_MANAGEMENT_VM_SUBNET_NAME}"
+        # Bastion Variables
+        export TF_VAR_management_bastion_name="${TF_VAR_MANAGEMENT_BASTION_NAME}"
+        export TF_VAR_management_bastion_resource_group_name="${TF_VAR_MANAGEMENT_BASTION_RESOURCE_GROUP_NAME}"
+        export TF_VAR_management_bastion_address_space="${TF_VAR_MANAGEMENT_BASTION_ADDRESS_SPACE}"
+        export TF_VAR_management_bastion_subnet_address_prefixes="${TF_VAR_MANAGEMENT_BASTION_SUBNET_ADDRESS_PREFIXES}"
+        export TF_VAR_management_bastion_tags="${TF_VAR_MANAGEMENT_BASTION_TAGS}"
+        # Logging Variables
+        export TF_VAR_logging_resource_group_name="${TF_VAR_LOGGING_RESOURCE_GROUP_NAME}"
+        export TF_VAR_logging_resource_group_location="${TF_VAR_LOGGING_RESOURCE_GROUP_LOCATION}"
+        export TF_VAR_logging_loganalytics_workspace_name="${TF_VAR_LOGGING_LOGANALYTICS_WORKSPACE_NAME}"
+        export TF_VAR_logging_eventhub_namespace_name="${TF_VAR_LOGGING_EVENTHUB_NAMESPACE_NAME}"
+        export TF_VAR_logging_eventhub_workspace_name="${TF_VAR_LOGGING_EVENTHUB_WORKSPACE_NAME}"
+
+        # Run Terraform plan
+        terraform plan -out=tfplan
+
+  - task: Bash@3
+    displayName: 'Apply Terraform Changes'
+    env:
+      ARM_CLIENT_ID: $(ARM_CLIENT_ID)
+      ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
+      ARM_SUBSCRIPTION_ID: $(ARM_SUBSCRIPTION_ID)
+      ARM_TENANT_ID: $(ARM_TENANT_ID)
+    inputs:
+      targetType: 'inline'
+      script: |
+        terraform apply -auto-approve tfplan
