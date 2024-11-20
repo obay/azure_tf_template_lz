@@ -1,7 +1,7 @@
 resource "azurerm_network_security_group" "connectivity-hub" {
   name                = "nsg-connectivity-hub-${var.connectivity_location}"
   location            = var.connectivity_location
-  resource_group_name = var.connectivity_resource_group_name
+  resource_group_name = azurerm_resource_group.connectivity.name
 
   security_rule {
     name                       = "allow-https"

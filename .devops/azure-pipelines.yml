@@ -21,18 +21,18 @@ steps:
         fi
 
   - task: Bash@3
-    displayName: 'Install Terraform'
+    displayName: 'Install OpenTofu'
     inputs:
       targetType: 'inline'
       script: |
         # Add Homebrew to PATH (needed for new task)
         eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
         # Install Terraform using Homebrew
-        brew install terraform
-        terraform --version
+        brew install opentofu
+        tofu --version
 
   - task: Bash@3
-    displayName: 'Initialize Terraform'
+    displayName: 'Initialize OpenTofu'
     env:
       ARM_CLIENT_ID: $(ARM_CLIENT_ID)
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
@@ -41,7 +41,8 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        terraform init
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        tofu init
 
   - task: Bash@3
     displayName: 'Print TF_VAR_* Variables'
@@ -52,7 +53,7 @@ steps:
         env | grep TF_VAR_
 
   - task: Bash@3
-    displayName: 'Plan Terraform Changes'
+    displayName: 'Plan OpenTofu Changes'
     env:
       ARM_CLIENT_ID: $(ARM_CLIENT_ID)
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
@@ -61,6 +62,7 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
         # Reference variables in uppercase to match Azure DevOps behavior
         export TF_VAR_connectivity_secondary_erc_peering_location="${TF_VAR_CONNECTIVITY_SECONDARY_ERC_PEERING_LOCATION}"
         export TF_VAR_root_name="${TF_VAR_ROOT_NAME}"
@@ -130,10 +132,10 @@ steps:
         export TF_VAR_logging_eventhub_workspace_name="${TF_VAR_LOGGING_EVENTHUB_WORKSPACE_NAME}"
 
         # Run Terraform plan
-        terraform plan -out=tfplan
+        tofu plan -out=tfplan
 
   - task: Bash@3
-    displayName: 'Apply Terraform Changes'
+    displayName: 'Apply OpenTofu Changes'
     env:
       ARM_CLIENT_ID: $(ARM_CLIENT_ID)
       ARM_CLIENT_SECRET: $(ARM_CLIENT_SECRET)   # Securely passes the secret
@@ -142,4 +144,5 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        terraform apply -auto-approve tfplan
+        eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+        tofu apply -auto-approve tfplan

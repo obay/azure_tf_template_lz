@@ -5,7 +5,7 @@ resource "azurerm_network_interface" "connectivity-hub" {
 
   ip_configuration {
     name                          = "ipconfig-connectivity-hub-${var.connectivity_location}"
-    subnet_id                     = azurerm_subnet.connectivity.id
+    subnet_id                     = azurerm_subnet.nva_untrust.id
     private_ip_address_allocation = "Dynamic"
   }
 }
