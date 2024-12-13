@@ -46,7 +46,7 @@ param(
     [string]$StorageAccountName = "saterraformstate",
     [string]$Location = "eastus",
     [string]$ContainerName = "terraform-state",
-    [string]$ServicePrincipalName = "sp-terraform-cpkcr"
+    [string]$ServicePrincipalName = "sp-terraform"
 )
 
 # Validate storage account name
